@@ -107,11 +107,13 @@ exports.update = function(req, res) {
     var _id = querystring.parse(putquery)['_id'];
     var where = {};
     var body = req.body;
+    var uid = body.uid;
 
-    if (typeof _id !== 'undefined') {
+    if (typeof _id !== 'undefined' && typeof uid !== 'undefined') {
         var ObjectID = require('mongodb').ObjectID;
         var objid = new ObjectID(_id);
-        where = {_id: objid};
+
+        where = {$and: [{uid: uid},{_id: objid}]};
     }
 
     _updateTip(req, where, body, function(error, results) {
@@ -128,7 +130,7 @@ exports.remove = function (req, res) {
     if (typeof _id !== 'undefined') {
         var ObjectID = require('mongodb').ObjectID;
         var objid = new ObjectID(_id);
-        where = {_id: objid};
+        where = {$and: [{uid: "1"},{_id: objid}]};
     }
 
     _removeTip(req, where, body, function (error, results) {

@@ -8,6 +8,7 @@ var bodyParser = require('body-parser');
 var routes = require('./routes/index');
 var users = require('./routes/users');
 var tip = require('./routes/tip');
+var like = require('./routes/like');
 var memo = require('./routes/memo');
 var card = require('./routes/card');
 var image = require('./routes/image');
@@ -48,6 +49,7 @@ app.use(function(req, res, next) {
 app.use('/', routes);
 app.use('/users', users);
 app.use('/tip', tip);
+app.use('/like', like);
 app.use('/memo', memo);
 app.use('/card', card);
 app.use('/image', image);

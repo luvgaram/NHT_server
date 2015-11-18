@@ -62,11 +62,11 @@ exports.create = function (req, res) {
     form.parse(req, function(err, fields, files) {
         newTip.storename = fields["storename"];
         newTip.tipdetail = fields["tipdetail"];
-        newTip.uid = fields["uid"] || "1";
+        newTip.uid = fields["uid"] || "user1";
         newTip.nickname = fields["nickname"] || "익명의 허니팁퍼";
         newTip.profilephoto = fields["profilephoto"] || "icon/profilephoto1.png";
         newTip.date = new Date().toLocaleString();
-        newTip.area = fields["nickname"] || "1";
+        newTip.area = fields["area"] || "1";
         newTip.status = "1";
 
         _insertTip(req, newTip, function (error, results) {

@@ -62,11 +62,11 @@ exports.create = function (req, res) {
     form.parse(req, function(err, fields, files) {
         newTip.storename = fields["storename"];
         newTip.tipdetail = fields["tipdetail"];
-        newTip.uid = fields["uid"] || "1";
+        newTip.uid = fields["uid"] || "user1";
         newTip.nickname = fields["nickname"] || "익명의 허니팁퍼";
         newTip.profilephoto = fields["profilephoto"] || "icon/profilephoto1.png";
         newTip.date = new Date().toLocaleString();
-        newTip.area = fields["nickname"] || "1";
+        newTip.area = fields["area"] || "1";
         newTip.status = "1";
 
         _insertTip(req, newTip, function (error, results) {
@@ -107,11 +107,13 @@ exports.update = function(req, res) {
     var _id = querystring.parse(putquery)['_id'];
     var where = {};
     var body = req.body;
+    var uid = body.uid;
 
-    if (typeof _id !== 'undefined') {
+    if (typeof _id !== 'undefined' && typeof uid !== 'undefined') {
         var ObjectID = require('mongodb').ObjectID;
         var objid = new ObjectID(_id);
-        where = {_id: objid};
+
+        where = {$and: [{uid: uid},{_id: objid}]};
     }
 
     _updateTip(req, where, body, function(error, results) {
@@ -124,11 +126,12 @@ exports.remove = function (req, res) {
     var _id = querystring.parse(delquery)['_id'];
     var where = {};
     var body = {status : "0"};
+    var uid = body.uid;
 
-    if (typeof _id !== 'undefined') {
+    if (typeof _id !== 'undefined' && typeof uid !== 'undefined') {
         var ObjectID = require('mongodb').ObjectID;
         var objid = new ObjectID(_id);
-        where = {_id: objid};
+        where = {$and: [{uid: uid},{_id: objid}]};
     }
 
     _removeTip(req, where, body, function (error, results) {

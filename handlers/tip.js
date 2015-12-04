@@ -126,11 +126,12 @@ exports.remove = function (req, res) {
     var _id = querystring.parse(delquery)['_id'];
     var where = {};
     var body = {status : "0"};
+    var uid = body.uid;
 
-    if (typeof _id !== 'undefined') {
+    if (typeof _id !== 'undefined' && typeof uid !== 'undefined') {
         var ObjectID = require('mongodb').ObjectID;
         var objid = new ObjectID(_id);
-        where = {$and: [{uid: "1"},{_id: objid}]};
+        where = {$and: [{uid: uid},{_id: objid}]};
     }
 
     _removeTip(req, where, body, function (error, results) {

@@ -125,8 +125,9 @@ exports.remove = function (req, res) {
     var delquery = req.params.delquery;
     var _id = querystring.parse(delquery)['_id'];
     var where = {};
-    var body = {status : "0"};
+    var body = req.body;
     var uid = body.uid;
+    body = {status : "0"};
 
     if (typeof _id !== 'undefined' && typeof uid !== 'undefined') {
         var ObjectID = require('mongodb').ObjectID;
@@ -162,6 +163,8 @@ function _updateTip(req, where, body, callback) {
 }
 
 function _removeTip(req, where, body, callback) {
+    console.log("where: " + JSON.stringify(where));
+    console.log("body: " + JSON.stringify(body));
     req.db.collection('tips', function(err, collection) {
         collection.update(where, {$set : body}, callback);
         //collection.remove(where, callback);

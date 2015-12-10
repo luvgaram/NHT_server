@@ -80,7 +80,8 @@ exports.create = function (req, res) {
 exports.read = function(req, res) {
     var getquery = req.params.getquery;
     var _id = querystring.parse(getquery)['_id'];
-    var nid = querystring.parse(getquery)['nid'];
+    var uid = querystring.parse(getquery)['uid'];
+    //var nid = querystring.parse(getquery)['nid'];
     var where = {status: "1"};
 
     if (typeof _id !== 'undefined') {
@@ -89,10 +90,8 @@ exports.read = function(req, res) {
         where = {$and: [{status: "1"},{_id: objid}]};
     }
 
-    if (typeof nid !== 'undefined') {
-        var ObjectID = require('mongodb').ObjectID;
-        var objid = new ObjectID(nid);
-        where = {$and: [{status: "1"},{_id: {$gt: objid}}]};
+    if (typeof uid !== 'undefined') {
+        where = {$and: [{status: "1"},{uid: uid}]};
     }
 
     console.log("where: " + JSON.stringify(where));

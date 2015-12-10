@@ -93,7 +93,17 @@ exports.update = function(req, res) {
     });
 
     form.parse(req, function(err, fields) {
-        updateUser.nickname = fields["nickname"];
+
+        var nickname;
+
+        nickname = (fields["nickname"]);
+
+        console.log("nickname type: " + typeof nickname);
+
+        if (typeof nickname === 'string') {
+            updateUser.nickname = nickname;
+            console.log("nickname: +" + nickname);
+        }
 
         if (JSON.stringify(path) != "{}") {
             console.log("path: " + JSON.stringify(path));

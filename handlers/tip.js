@@ -80,7 +80,8 @@ exports.create = function (req, res) {
 exports.read = function(req, res) {
     var getquery = req.params.getquery;
     var _id = querystring.parse(getquery)['_id'];
-    var nid = querystring.parse(getquery)['nid'];
+    var uid = querystring.parse(getquery)['uid'];
+    //var nid = querystring.parse(getquery)['nid'];
     var where = {status: "1"};
 
     if (typeof _id !== 'undefined') {
@@ -89,10 +90,8 @@ exports.read = function(req, res) {
         where = {$and: [{status: "1"},{_id: objid}]};
     }
 
-    if (typeof nid !== 'undefined') {
-        var ObjectID = require('mongodb').ObjectID;
-        var objid = new ObjectID(nid);
-        where = {$and: [{status: "1"},{_id: {$gt: objid}}]};
+    if (typeof uid !== 'undefined') {
+        where = {$and: [{status: "1"},{uid: uid}]};
     }
 
     console.log("where: " + JSON.stringify(where));
@@ -125,8 +124,9 @@ exports.remove = function (req, res) {
     var delquery = req.params.delquery;
     var _id = querystring.parse(delquery)['_id'];
     var where = {};
-    var body = {status : "0"};
+    var body = req.body;
     var uid = body.uid;
+    body = {status : "0"};
 
     if (typeof _id !== 'undefined' && typeof uid !== 'undefined') {
         var ObjectID = require('mongodb').ObjectID;
@@ -162,6 +162,8 @@ function _updateTip(req, where, body, callback) {
 }
 
 function _removeTip(req, where, body, callback) {
+    console.log("where: " + JSON.stringify(where));
+    console.log("body: " + JSON.stringify(body));
     req.db.collection('tips', function(err, collection) {
         collection.update(where, {$set : body}, callback);
         //collection.remove(where, callback);

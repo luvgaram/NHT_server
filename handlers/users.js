@@ -12,6 +12,7 @@ exports.create = function (req, res) {
     var body = req.body;
     var uid = body.uid;
     var newUser = {};
+    var where = {status: "1"};
 
     if (typeof uid !== 'undefined') {
         newUser = {_id: uid, nickname: "익명의 허니팁퍼", profilephoto: "icon/profilephoto1.png", status: "1"};
@@ -19,8 +20,16 @@ exports.create = function (req, res) {
 
     console.log('user - ' + JSON.stringify(newUser));
 
-    _insertUser(req, newUser, function (error, results) {
-        res.json(results);
+    _insertUser(req, newUser, function (err, results) {
+
+        if (typeof results !== 'undefined') {
+            res.json(newUser);
+        } else {
+            where = {$and: [{status: "1"},{_id: uid}]};
+            _findUser(req, where, function (err, results) {
+                res.json(results);
+            });
+        }
     });
 };
 

@@ -21,8 +21,8 @@ exports.create = function (req, res) {
     console.log('user - ' + JSON.stringify(newUser));
 
     _insertUser(req, newUser, function (err, results) {
-
-        if (typeof results !== 'undefined') {
+        if (err === null) {
+            console.log(JSON.stringify(results));
             res.json(newUser);
         } else {
             where = {$and: [{status: "1"},{_id: uid}]};

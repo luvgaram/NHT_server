@@ -68,6 +68,8 @@ exports.create = function (req, res) {
         newTip.date = new Date().toLocaleString();
         newTip.area = fields["area"] || "1";
         newTip.status = "1";
+        newTip.like = [];
+        newTip.reply = [];
 
         _insertTip(req, newTip, function (error, results) {
             result["error"] = error;

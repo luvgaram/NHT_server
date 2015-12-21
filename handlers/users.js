@@ -27,7 +27,12 @@ exports.create = function (req, res) {
         } else {
             where = {$and: [{status: "1"},{_id: uid}]};
             _findUser(req, where, function (err, results) {
-                res.json(results);
+
+                if (results.length > 0) {
+                    res.json(results[0]);
+                } else {
+                    res.json(results);
+                }
             });
         }
     });

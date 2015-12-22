@@ -157,3 +157,23 @@ function _updateReply(req, where, body, callback) {
         });
     });
 }
+
+function _deleteReply(req, where, body, callback) {
+    console.log("where: " + JSON.stringify(where));
+    console.log("body: " + JSON.stringify(body));
+
+    req.db.collection('tips', function(err, collection) {
+        collection.update(where, {$pull: body});
+
+        var ObjectID = require('mongodb').ObjectID;
+        var objid = new ObjectID(body.reply);
+        where = {_id: objid};
+
+        req.db.collection('replies', function(err, collection) {
+
+            console.log("reply where: " + JSON.stringify(where));
+            body = {"status" : "0"};
+            collection.update(where, {$set : body}, callback);
+        });
+    });
+}

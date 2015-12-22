@@ -1,8 +1,8 @@
 querystring = require('querystring');
 
-exports.update = function (req, res) {
-    var putquery = req.params.putquery;
-    var _id = querystring.parse(putquery)['_id'];
+exports.create = function (req, res) {
+    var postquery = req.params.postquery;
+    var _id = querystring.parse(postquery)['_id'];
     var body = req.body;
 
     if (typeof _id !== 'undefined') {
@@ -12,10 +12,27 @@ exports.update = function (req, res) {
         where = {_id: objid};
     }
 
-    _updateLike(req, where, body, function(error, results) {
+    _createLike(req, where, body, function(error, results) {
         res.json( {error: error, results : results});
     });
 
+};
+
+exports.update = function (req, res) {
+    var putquery = req.params.putquery;
+    var _id = querystring.parse(putquery)['_id'];
+    var where = {};
+    var body = req.body;
+
+    if (typeof _id !== 'undefined') {
+        var ObjectID = require('mongodb').ObjectID;
+        var objid = new ObjectID(_id);
+        where = {_id: objid};
+    }
+
+    _updateLike(req, where, body, function (error, results) {
+        res.json({error : error, results : results});
+    });
 };
 
 exports.read = function(req, res) {
@@ -54,6 +71,14 @@ exports.remove = function (req, res) {
     });
 };
 
+function _createLike(req, where, body, callback) {
+    console.log("where: " + JSON.stringify(where));
+    console.log("body: " + JSON.stringify(body));
+    req.db.collection('tips', function(err, collection) {
+        collection.update(where, {$addToSet : body}, callback);
+    });
+}
+
 function _findLike(req, where, callback) {
     where = where || {};
     console.log("where: " + JSON.stringify(where));
@@ -66,7 +91,7 @@ function _updateLike(req, where, body, callback) {
     console.log("where: " + JSON.stringify(where));
     console.log("body: " + JSON.stringify(body));
     req.db.collection('tips', function(err, collection) {
-        collection.update(where, {$addToSet : body}, callback);
+        collection.update(where, {$pull: body}, callback);
     });
 }
 

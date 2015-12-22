@@ -8,6 +8,7 @@ var reply = require('../handlers/reply.js');
 
 router.post('/', reply.create);
 router.get('/:getquery', reply.read);
+router.put('/:putquery', reply.update);
 router.delete('/:delquery', reply.remove);
 
 module.exports = router;

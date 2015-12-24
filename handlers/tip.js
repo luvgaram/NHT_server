@@ -3,7 +3,8 @@ var formidable = require('formidable'),
     path = require('path'),
     mime = require('mime'),
     fs = require('fs'),
-    querystring = require('querystring');
+    querystring = require('querystring'),
+    dateformat = require('dateformat');
 
 //var UPLOAD_FOLDER = __dirname + "/data";
 var UPLOAD_FOLDER = "./data";
@@ -23,18 +24,14 @@ exports.create = function (req, res) {
     form.multiple = "multiple";
 
     form.on ('field', function(field, value) {
-        console.log(field, value);
         fields.push([field, value]);
     }).on ('file', function (field, file) {
-        console.log(field, file);
         files.push([field, file]);
         console.log("files!!!! --- " + JSON.stringify(files));
     }).on ('progress', function(bytesReceived, bytesExpected) {
         console.log('progress: ' + bytesReceived + '/' + bytesExpected);
     }).on ('end', function() {
         console.log('-> upload done');
-
-        console.log('parse - ' + JSON.stringify(files));
 
         result = files;
         var fileInfos = [];
@@ -50,7 +47,6 @@ exports.create = function (req, res) {
             };
 
             result[file]["_id"] = _id;
-            console.log("fileinfos: " + JSON.stringify(fileInfo));
             fileInfos.push(fileInfo);
         }
 
@@ -60,16 +56,18 @@ exports.create = function (req, res) {
     });
 
     form.parse(req, function(err, fields, files) {
+        var locationInfo = {
+            type: "Point",
+            coordinates : [parseFloat(fields ["longitude"]), parseFloat(fields ["latitude"])]
+        }
         newTip.storename = fields["storename"];
         newTip.tipdetail = fields["tipdetail"];
         newTip.uid = fields["uid"] || "user1";
         newTip.nickname = fields["nickname"] || "익명의 허니팁퍼";
         newTip.profilephoto = fields["profilephoto"] || "icon/profilephoto1.png";
-        newTip.date = new Date().toLocaleString();
-        newTip.area = fields["area"] || "1";
+        newTip.date = dateformat(new Date(), 'yy-mm-dd HH:MM:ss');
+        newTip.loc = locationInfo,
         newTip.status = "1";
-        newTip.like = [];
-        newTip.reply = [];
 
         _insertTip(req, newTip, function (error, results) {
             result["error"] = error;

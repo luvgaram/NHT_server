@@ -1,13 +1,12 @@
 var formidable = require('formidable'),
-    util = require('util'),
     path = require('path'),
-    mime = require('mime'),
-    fs = require('fs'),
     querystring = require('querystring'),
-    dateformat = require('dateformat');
+    dateformat = require('dateformat'),
+    async = require('async');
 
 //var UPLOAD_FOLDER = __dirname + "/data";
 var UPLOAD_FOLDER = "./data";
+var dateScope = 7;
 
 // set timezone
 process.env.TZ = 'Asia/Seoul';
@@ -55,7 +54,7 @@ exports.create = function (req, res) {
         console.log('newTip - ' + JSON.stringify(newTip));
     });
 
-    form.parse(req, function(err, fields, files) {
+    form.parse(req, function(err, fields) {
         var locationInfo = {
             type: "Point",
             coordinates : [parseFloat(fields ["longitude"]), parseFloat(fields ["latitude"])]
@@ -63,8 +62,6 @@ exports.create = function (req, res) {
         newTip.storename = fields["storename"];
         newTip.tipdetail = fields["tipdetail"];
         newTip.uid = fields["uid"] || "user1";
-        newTip.nickname = fields["nickname"] || "익명의 허니팁퍼";
-        newTip.profilephoto = fields["profilephoto"] || "icon/profilephoto1.png";
         newTip.date = dateformat(new Date(), 'yy-mm-dd HH:MM:ss');
         newTip.loc = locationInfo,
         newTip.status = "1";
@@ -81,24 +78,133 @@ exports.read = function(req, res) {
     var getquery = req.params.getquery;
     var _id = querystring.parse(getquery)['_id'];
     var uid = querystring.parse(getquery)['uid'];
-    //var nid = querystring.parse(getquery)['nid'];
+    var sid = querystring.parse(getquery)['sid'];
+    var longitude = querystring.parse(getquery)['long'];
+    var latitude = querystring.parse(getquery)['lat'];
+    var distance = querystring.parse(getquery)['dis'];
     var where = {status: "1"};
 
     if (typeof _id !== 'undefined') {
         var ObjectID = require('mongodb').ObjectID;
         var objid = new ObjectID(_id);
         where = {$and: [{status: "1"},{_id: objid}]};
-    }
 
-    if (typeof uid !== 'undefined') {
+        _findTip(req, where, function (err, results) {
+            res.json(results);
+        });
+    } else if (typeof uid !== 'undefined') {
         where = {$and: [{status: "1"},{uid: uid}]};
+
+        _findTip(req, where, function (err, results) {
+            res.json(results);
+        });
+    } else if (typeof longitude !== 'undefined' && typeof latitude !== 'undefined' && typeof sid !== 'undefined' ) {
+
+        var date = new Date();
+        date.setDate(date.getDate() - dateScope);
+        var searchingDate = dateformat(date, 'yy-mm-dd HH:MM:ss');
+
+        var long = parseFloat(longitude);
+        var lat = parseFloat(latitude);
+        var disMul = 3963.2;
+        var mToMile = 0.000621371;
+        var desKm = 3000;
+
+        if (typeof distance !== 'undefined') desKm = distance;
+
+        where =
+            {$and: [{status: "1"},
+                    {date: {$gte: searchingDate}},
+                    {loc :
+                        {$geoWithin :
+                            {$centerSphere :
+                                [[long,lat], (desKm * mToMile) / disMul]
+                            }
+                        }
+                    }]
+            };
+        var command = { geoNear: 'tips',
+            near: [ parseFloat(longitude), parseFloat(latitude) ],
+            spherical: true,
+            distanceMultiplier: disMul,
+            query: where
+        };
+
+        _findNearTip(req, command, function (resultsWithStats) {
+            var nearTips = [];
+            var tipIds = [];
+
+            resultsWithStats = JSON.parse(resultsWithStats);
+            //console.log(resultsWithStats);
+
+            for (var i = 0; i < resultsWithStats.results.length; i++) {
+                var middleTip = resultsWithStats.results[i];
+                //console.log("middletip: " + middleTip.toString());
+
+                async.waterfall([
+                    function(callback){
+                        var tipResult;
+                        tipResult = middleTip.obj;
+                        tipResult.dis = middleTip.dis;
+                        callback(null, tipResult);
+                    },
+                    function(tipResult, callback){
+                        callback(null, tipResult, {"_id": tipResult.uid});
+                    },
+                    function(tipResult, where, callback) {
+                        req.db.collection('user', function(err, collection) {
+                            nearTips.push(tipResult);
+                            console.log("tipResult: " + JSON.stringify(tipResult.storename));
+                            collection.find(where).toArray(callback);
+                        });
+                    }
+                ], function (err, results) {
+                    tipIds.push(results[0]);
+
+                    var index = tipIds.length - 1;
+
+                    if (index >= 0) {
+
+                        var targetTip =  nearTips[index];
+                        targetTip.nickname = tipIds[index].nickname;
+                        targetTip.profilephoto = tipIds[index].profilephoto;
+                        targetTip.dis =  Math.floor(targetTip.dis / mToMile);
+
+                        var like = targetTip.like;
+
+                        if (like == null) {
+                            targetTip.like = 0;
+                            targetTip.isliked = false;
+
+                        } else {
+                            var isLiked = false;
+                            for (var i = 0; i < like.length; i++) {
+                                console.log("uid: " + like[i]);
+                                if (like[i] == sid) {
+                                    isLiked = true;
+                                    break;
+                                }
+                            }
+                            targetTip.like = like.length;
+                            targetTip.isliked = isLiked;
+                        }
+                    } else (res.json(err));
+
+                    if (index == nearTips.length - 1) {
+                        res.json(nearTips);
+                    }
+                });
+            }
+            //res.json(nearTips);
+        });
+
+    } else {
+        console.log("where: " + JSON.stringify(where));
+        _findTip(req, where, function (err, results) {
+            res.json(results);
+        });
     }
 
-    console.log("where: " + JSON.stringify(where));
-    _findTip(req, where, function (err, results) {
-        // res.json({error: err, results: results});
-        res.json(results);
-    });
 };
 
 exports.update = function(req, res) {
@@ -150,6 +256,17 @@ function _findTip(req, where, callback) {
     console.log("where: " + JSON.stringify(where));
     req.db.collection('tips', function(err, collection) {
         collection.find(where).toArray(callback);
+    });
+}
+
+function _findNearTip(req, command, callback) {
+    command = command || {};
+    console.log("command: " + JSON.stringify(command));
+    console.log("db: " + req.db.toString());
+
+    req.db.command(command, req.db, function(err, resultsWithStats) {
+        console.log("_findNearTip:" + JSON.stringify(resultsWithStats.results));
+        callback(JSON.stringify(resultsWithStats));
     });
 }
 

@@ -55,21 +55,24 @@ exports.create = function (req, res) {
     });
 
     form.parse(req, function(err, fields) {
+
         var locationInfo = {
             type: "Point",
             coordinates : [parseFloat(fields ["longitude"]), parseFloat(fields ["latitude"])]
-        }
+        };
         newTip.storename = fields["storename"];
         newTip.tipdetail = fields["tipdetail"];
         newTip.uid = fields["uid"] || "user1";
         newTip.date = dateformat(new Date(), 'yy-mm-dd HH:MM:ss');
-        newTip.loc = locationInfo,
+        newTip.loc = locationInfo;
         newTip.status = "1";
 
         _insertTip(req, newTip, function (error, results) {
             result["error"] = error;
             result["results"] = results;
-            res.end(JSON.stringify(newTip));
+
+            if (error === 'null' || typeof results === 'undefined') res.end(JSON.stringify({error: error}));
+            else res.end(JSON.stringify(newTip));
         });
     });
 };
@@ -99,7 +102,6 @@ exports.read = function(req, res) {
             res.json(results);
         });
     } else if (typeof longitude !== 'undefined' && typeof latitude !== 'undefined' && typeof sid !== 'undefined' ) {
-
         var date = new Date();
         date.setDate(date.getDate() - dateScope);
         var searchingDate = dateformat(date, 'yy-mm-dd HH:MM:ss');
@@ -108,7 +110,7 @@ exports.read = function(req, res) {
         var lat = parseFloat(latitude);
         var disMul = 3963.2;
         var mToMile = 0.000621371;
-        var desKm = 3000;
+        var desKm = 3000; // default 3km
 
         if (typeof distance !== 'undefined') desKm = distance;
 
@@ -195,7 +197,6 @@ exports.read = function(req, res) {
                     }
                 });
             }
-            //res.json(nearTips);
         });
 
     } else {
@@ -204,7 +205,6 @@ exports.read = function(req, res) {
             res.json(results);
         });
     }
-
 };
 
 exports.update = function(req, res) {
@@ -255,7 +255,7 @@ function _findTip(req, where, callback) {
     where = where || {};
     console.log("where: " + JSON.stringify(where));
     req.db.collection('tips', function(err, collection) {
-        collection.find(where).toArray(callback);
+        collection.find(where).sort({date : -1}).toArray(callback);
     });
 }
 

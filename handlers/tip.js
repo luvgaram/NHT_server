@@ -156,7 +156,7 @@ exports.read = function(req, res) {
                     function(tipResult, where, callback) {
                         req.db.collection('user', function(err, collection) {
                             nearTips.push(tipResult);
-                            console.log("tipResult: " + JSON.stringify(tipResult.storename));
+                            //console.log("tipResult: " + JSON.stringify(tipResult.storename));
                             collection.find(where).toArray(callback);
                         });
                     }
@@ -181,7 +181,7 @@ exports.read = function(req, res) {
                         } else {
                             var isLiked = false;
                             for (var i = 0; i < like.length; i++) {
-                                console.log("uid: " + like[i]);
+                                //console.log("uid: " + like[i]);
                                 if (like[i] == sid) {
                                     isLiked = true;
                                     break;

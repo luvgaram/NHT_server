@@ -66,6 +66,8 @@ exports.create = function (req, res) {
         newTip.date = dateformat(new Date(), 'yy-mm-dd HH:MM:ss');
         newTip.loc = locationInfo;
         newTip.status = "1";
+        newTip.like = [];
+        newTip.reply = [];
 
         _insertTip(req, newTip, function (error, results) {
             result["error"] = error;

@@ -1,4 +1,5 @@
 querystring = require('querystring');
+async = require('async');
 
 exports.create = function (req, res) {
     var body = req.body;
@@ -23,9 +24,65 @@ exports.read = function(req, res) {
         where = {$and: [{status: "1"}, {_id: objid}]};
 
         _findReply(req, where, function (err, results) {
-
             console.log(results[0].reply);
-            res.json(results[0].reply);
+            var reply = results[0].reply;
+            var resultReply = [];
+            var replyUser = [];
+
+            for (var i = 0; i < reply.length; i++) {
+                var curReply = reply[i];
+
+                async.waterfall([
+                    function(callback) {
+                        callback(null, curReply);
+                    },
+                    function(curReply, callback) {
+                        where = {$and: [{status: "1"}, {_id: new ObjectID(curReply)}]};
+                        console.log("where:" + JSON.stringify(where));
+                        req.db.collection('replies', function(err, collection) {
+                            collection.find(where).toArray(callback);
+                        });
+                    }], function(err, result) {
+                        console.log("reply results:" + JSON.stringify(result));
+                        resultReply.push(result[0]);
+                        var curUid = result[0].uid;
+                        console.log("curUid: " + curUid);
+
+                        async.waterfall([
+                            function(callback) {
+                                callback(null, curUid);
+                            },
+                            function(curUid, callback) {
+                                where = {$and: [{status: "1"}, {_id: curUid}]};
+                                console.log("where:" + JSON.stringify(where));
+                                req.db.collection('user', function(err, collection) {
+                                    collection.find(where).toArray(callback);
+                                });
+                            }
+                        ], function(err, userresult) {
+                            console.log("userresult: " + JSON.stringify(userresult));
+
+                            if (JSON.stringify(userresult) == "[]") {
+                                var deletedUser = {
+                                    "nickname": "익명의 허니팁퍼",
+                                    "profilephoto": "icon/icon1.png"
+                                };
+                                replyUser.push(deletedUser);
+                            } else {
+                                replyUser.push(userresult[0]);
+                            }
+
+                            if (resultReply.length == reply.length && resultReply.length == replyUser.length) {
+                                for (var j = 0; j < replyUser.length; j++) {
+                                    resultReply[j].nickname = replyUser[j].nickname;
+                                    resultReply[j].profilephoto = replyUser[j].profilephoto;
+                                }
+                                res.json(resultReply);
+                            }
+                        });
+                    }
+                )
+            }
         });
     }
 
@@ -89,8 +146,6 @@ function _insertReply(req, body, callback) {
     var reply = {
         tid : body.tid,
         uid : body.uid,
-        nickname : body.nickname,
-        icon : body.icon,
         detail : body.detail,
         time : new Date().toLocaleString(),
         status : "1"

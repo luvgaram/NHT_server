@@ -100,9 +100,36 @@ exports.read = function(req, res) {
     } else if (typeof uid !== 'undefined') {
         where = {$and: [{status: "1"},{uid: uid}]};
 
+        var newResults = [];
+
         _findTip(req, where, function (err, results) {
-            res.json(results);
+            for (var i = 0; i < results.length; i++) {
+                var newTip = results[i];
+
+                console.log(i + " " + newTip);
+
+                if (newTip.like == null) {
+                    newTip.like = 0;
+                    newTip.isliked = false;
+
+                } else {
+                    var isLiked = false;
+                    for (var j = 0; j < newTip.like.length; j++) {
+                        if (newTip.like[i] == newTip.uid) {
+                            newTip.isLiked = true;
+                            break;
+                        }
+                    }
+                    newTip.like = newTip.like.length;
+                    newTip.isliked = isLiked;
+                }
+
+                newResults[i] = newTip;
+            }
+            console.log(newResults);
+            res.json(newResults);
         });
+
     } else if (typeof longitude !== 'undefined' && typeof latitude !== 'undefined' && typeof sid !== 'undefined' ) {
         var date = new Date();
         date.setDate(date.getDate() - dateScope);
@@ -139,11 +166,9 @@ exports.read = function(req, res) {
             var tipIds = [];
 
             resultsWithStats = JSON.parse(resultsWithStats);
-            //console.log(resultsWithStats);
 
             for (var i = 0; i < resultsWithStats.results.length; i++) {
                 var middleTip = resultsWithStats.results[i];
-                //console.log("middletip: " + middleTip.toString());
 
                 async.waterfall([
                     function(callback){
@@ -158,7 +183,6 @@ exports.read = function(req, res) {
                     function(tipResult, where, callback) {
                         req.db.collection('user', function(err, collection) {
                             nearTips.push(tipResult);
-                            //console.log("tipResult: " + JSON.stringify(tipResult.storename));
                             collection.find(where).toArray(callback);
                         });
                     }
@@ -263,8 +287,6 @@ function _findTip(req, where, callback) {
 
 function _findNearTip(req, command, callback) {
     command = command || {};
-    console.log("command: " + JSON.stringify(command));
-    console.log("db: " + req.db.toString());
 
     req.db.command(command, req.db, function(err, resultsWithStats) {
         console.log("_findNearTip:" + JSON.stringify(resultsWithStats.results));

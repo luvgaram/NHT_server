@@ -180,17 +180,17 @@ exports.read = function(req, res) {
                         callback(null, tipResult);
                     },
                     function(tipResult, callback){
+                        nearTips.push(tipResult);
+                        console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
                         callback(null, tipResult, {"_id": tipResult.uid});
                     },
                     function(tipResult, where, callback) {
                         req.db.collection('user', function(err, collection) {
-
                             collection.find(where).toArray(callback);
                         });
                     }
                 ], function (err, results) {
-                    nearTips.push(tipResult);
-                    console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
+
 
                     tipIds.push(results[0]);
                     console.log("tipIds uid: " + results[0]._id + " | " +  results[0].nickname);

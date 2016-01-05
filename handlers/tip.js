@@ -173,7 +173,8 @@ exports.read = function(req, res) {
 
                 async.waterfall([
                     function(callback){
-
+                        nearTips.push(tipResult);
+                        console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
                         tipResult = middleTip.obj;
                         tipResult.dis = middleTip.dis;
                         callback(null, tipResult);
@@ -183,8 +184,7 @@ exports.read = function(req, res) {
                     },
                     function(tipResult, where, callback) {
                         req.db.collection('user', function(err, collection) {
-                            nearTips.push(tipResult);
-                            console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
+
                             collection.find(where).toArray(callback);
                         });
                     }

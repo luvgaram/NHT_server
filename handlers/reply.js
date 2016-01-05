@@ -28,6 +28,10 @@ exports.read = function(req, res) {
             var reply = results[0].reply;
             var resultReply = [];
             var replyUser = [];
+            var userInfo = {};
+
+            console.log(JSON.stringify(results[0].reply));
+            if (JSON.stringify(results[0].reply) == "[]") res.json(resultReply);
 
             for (var i = 0; i < reply.length; i++) {
                 var curReply = reply[i];
@@ -60,24 +64,31 @@ exports.read = function(req, res) {
                                 });
                             }
                         ], function(err, userresult) {
-                            console.log("userresult: " + JSON.stringify(userresult));
 
                             if (JSON.stringify(userresult) == "[]") {
                                 var deletedUser = {
+                                    "_id": "deleted-user",
                                     "nickname": "익명의 허니팁퍼",
                                     "profilephoto": "icon/icon1.png"
                                 };
                                 replyUser.push(deletedUser);
+                                userresult[0] = deletedUser;
                             } else {
                                 replyUser.push(userresult[0]);
                             }
 
+                            var userid = userresult[0]._id;
+                            userInfo[userid] = {"nickname" : userresult[0].nickname, "profilephoto" : userresult[0].profilephoto};
+
                             if (resultReply.length == reply.length && resultReply.length == replyUser.length) {
-                                for (var j = 0; j < replyUser.length; j++) {
-                                    resultReply[j].nickname = replyUser[j].nickname;
-                                    resultReply[j].profilephoto = replyUser[j].profilephoto;
+                                for (var index = 0; index < replyUser.length; index++) {
+                                    var targetReply = resultReply[index];
+                                    var targetUser = userInfo[targetReply.uid];
+                                    targetReply.nickname = targetUser.nickname;
+                                    targetReply.profilephoto = targetUser.profilephoto;
                                 }
-                                res.json(resultReply);
+
+                                if (index == resultReply.length) res.json(resultReply);
                             }
                         });
                     }

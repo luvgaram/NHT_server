@@ -189,7 +189,20 @@ exports.read = function(req, res) {
                         });
                     }
                 ], function (err, results) {
-                    tipIds.push(results[0]);
+
+                    if (JSON.stringify(results) == "[]") {
+                        var deletedUser = {
+                            "_id": "deleted-user",
+                            "nickname": "익명의 허니팁퍼",
+                            "profilephoto": "icon/icon1.png"
+                        };
+                        results[0] = deletedUser;
+                        tipIds.push(deletedUser);
+                    } else {
+                        tipIds.push(results[0]);
+                    }
+
+                    //tipIds.push(results[0]);
                     //console.log("tipIds id: " + results[0]._id + " | " +  results[0].nickname);
 
                     var userid = results[0]._id;

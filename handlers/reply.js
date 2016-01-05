@@ -30,6 +30,9 @@ exports.read = function(req, res) {
             var replyUser = [];
             var userInfo = {};
 
+            console.log(JSON.stringify(results[0].reply));
+            if (JSON.stringify(results[0].reply) == "[]") res.json(resultReply);
+
             for (var i = 0; i < reply.length; i++) {
                 var curReply = reply[i];
 

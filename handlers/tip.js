@@ -164,6 +164,7 @@ exports.read = function(req, res) {
         _findNearTip(req, command, function (resultsWithStats) {
             var nearTips = [];
             var tipIds = [];
+            var userInfo = {};
 
             resultsWithStats = JSON.parse(resultsWithStats);
 
@@ -188,16 +189,23 @@ exports.read = function(req, res) {
                         });
                     }
                 ], function (err, results) {
-
                     tipIds.push(results[0]);
-                    console.log("tipIds uid: " + results[0]._id + " | " +  results[0].nickname);
+                    //console.log("tipIds id: " + results[0]._id + " | " +  results[0].nickname);
+
+                    var userid = results[0]._id;
+                    userInfo[userid] = {"nickname" : results[0].nickname, "profilephoto" : results[0].profilephoto};
 
                     var index = tipIds.length - 1;
 
                     if (index >= 0) {
                         var targetTip =  nearTips[index];
-                        targetTip.nickname = tipIds[index].nickname;
-                        targetTip.profilephoto = tipIds[index].profilephoto;
+                        //targetTip.nickname = tipIds[index].nickname;
+                        //targetTip.profilephoto = tipIds[index].profilephoto;
+
+                        var targetUser = userInfo[targetTip.uid];
+                        targetTip.nickname = targetUser.nickname;
+                        targetTip.profilephoto = targetUser.profilephoto;
+
                         targetTip.dis =  Math.floor(targetTip.dis / mToMile);
 
                         var like = targetTip.like;

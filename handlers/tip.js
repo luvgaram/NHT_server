@@ -169,10 +169,11 @@ exports.read = function(req, res) {
 
             for (var i = 0; i < resultsWithStats.results.length; i++) {
                 var middleTip = resultsWithStats.results[i];
+                var tipResult;
 
                 async.waterfall([
                     function(callback){
-                        var tipResult;
+
                         tipResult = middleTip.obj;
                         tipResult.dis = middleTip.dis;
                         callback(null, tipResult);
@@ -182,12 +183,15 @@ exports.read = function(req, res) {
                     },
                     function(tipResult, where, callback) {
                         req.db.collection('user', function(err, collection) {
-                            nearTips.push(tipResult);
+                            nearTips.push(tipResult);ß
                             console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
                             collection.find(where).toArray(callback);
                         });
                     }
                 ], function (err, results) {
+                    nearTips.push(tipResult);
+                    console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
+
                     tipIds.push(results[0]);
                     console.log("tipIds uid: " + results[0]._id + " | " +  results[0].nickname);
 

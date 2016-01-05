@@ -183,7 +183,7 @@ exports.read = function(req, res) {
                     },
                     function(tipResult, where, callback) {
                         req.db.collection('user', function(err, collection) {
-                            nearTips.push(tipResult);ß
+                            nearTips.push(tipResult);
                             console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
                             collection.find(where).toArray(callback);
                         });

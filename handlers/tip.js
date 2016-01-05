@@ -183,16 +183,17 @@ exports.read = function(req, res) {
                     function(tipResult, where, callback) {
                         req.db.collection('user', function(err, collection) {
                             nearTips.push(tipResult);
+                            console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
                             collection.find(where).toArray(callback);
                         });
                     }
                 ], function (err, results) {
                     tipIds.push(results[0]);
+                    console.log("tipIds uid: " + results[0]._id + " | " +  results[0].nickname);
 
                     var index = tipIds.length - 1;
 
                     if (index >= 0) {
-
                         var targetTip =  nearTips[index];
                         targetTip.nickname = tipIds[index].nickname;
                         targetTip.profilephoto = tipIds[index].profilephoto;

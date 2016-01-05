@@ -197,35 +197,6 @@ exports.read = function(req, res) {
 
                     var index = tipIds.length - 1;
 
-                    //if (index >= 0) {
-                    //    var targetTip =  nearTips[index];
-                    //
-                    //    var targetUser = userInfo[targetTip.uid];
-                    //    targetTip.nickname = targetUser.nickname;
-                    //    targetTip.profilephoto = targetUser.profilephoto;
-                    //
-                    //    targetTip.dis =  Math.floor(targetTip.dis / mToMile);
-                    //
-                    //    var like = targetTip.like;
-                    //
-                    //    if (like == null) {
-                    //        targetTip.like = 0;
-                    //        targetTip.isliked = false;
-                    //
-                    //    } else {
-                    //        var isLiked = false;
-                    //        for (var i = 0; i < like.length; i++) {
-                    //            //console.log("uid: " + like[i]);
-                    //            if (like[i] == sid) {
-                    //                isLiked = true;
-                    //                break;
-                    //            }
-                    //        }
-                    //        targetTip.like = like.length;
-                    //        targetTip.isliked = isLiked;
-                    //    }
-                    //} else (res.json(err));
-
                     if (tipIds.length == nearTips.length) {
 
                         for (var index = 0; index < tipIds.length; index++) {

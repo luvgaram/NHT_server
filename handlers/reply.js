@@ -1,5 +1,6 @@
 querystring = require('querystring');
 async = require('async');
+dateformat = require('dateformat');
 
 exports.create = function (req, res) {
     var body = req.body;
@@ -83,10 +84,28 @@ exports.read = function(req, res) {
                             if (resultReply.length == reply.length && resultReply.length == replyUser.length) {
                                 for (var index = 0; index < replyUser.length; index++) {
                                     var targetReply = resultReply[index];
-                                    var targetUser = userInfo[targetReply.uid];
+                                    var targetUser;
+
+                                    if (typeof userInfo[targetReply.uid] == 'undefined')
+                                        targetUser= userInfo["deleted-user"];
+                                    else
+                                        targetUser = userInfo[targetReply.uid];
+
+                                    console.log("targetUID: " + targetReply.uid + "targetUser: " + JSON.stringify(targetUser));
+
                                     targetReply.nickname = targetUser.nickname;
                                     targetReply.profilephoto = targetUser.profilephoto;
                                 }
+
+                                // sort by time
+                                function sortResults(prop, asc) {
+                                    resultReply = resultReply.sort(function(a, b) {
+                                        if (asc) return (a[prop] > b[prop]) ? -1 : ((a[prop] < b[prop]) ? 1 : 0);
+                                        else return (b[prop] > a[prop]) ? -1 : ((b[prop] < a[prop]) ? 1 : 0);
+                                    });
+                                }
+
+                                sortResults('time', true);
 
                                 if (index == resultReply.length) res.json(resultReply);
                             }
@@ -158,7 +177,7 @@ function _insertReply(req, body, callback) {
         tid : body.tid,
         uid : body.uid,
         detail : body.detail,
-        time : new Date().toLocaleString(),
+        time : dateformat(new Date(), 'yy-mm-dd HH:MM:ss'),
         status : "1"
     };
 

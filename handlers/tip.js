@@ -169,28 +169,25 @@ exports.read = function(req, res) {
 
             for (var i = 0; i < resultsWithStats.results.length; i++) {
                 var middleTip = resultsWithStats.results[i];
-                var tipResult;
 
                 async.waterfall([
                     function(callback){
-                        nearTips.push(tipResult);
-                        console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
+                        var tipResult;
                         tipResult = middleTip.obj;
                         tipResult.dis = middleTip.dis;
                         callback(null, tipResult);
                     },
                     function(tipResult, callback){
-                        nearTips.push(tipResult);
-                        console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
                         callback(null, tipResult, {"_id": tipResult.uid});
                     },
                     function(tipResult, where, callback) {
                         req.db.collection('user', function(err, collection) {
+                            nearTips.push(tipResult);
+                            console.log("tipResult uid: " + tipResult._id + " | " + tipResult.uid);
                             collection.find(where).toArray(callback);
                         });
                     }
                 ], function (err, results) {
-
 
                     tipIds.push(results[0]);
                     console.log("tipIds uid: " + results[0]._id + " | " +  results[0].nickname);
